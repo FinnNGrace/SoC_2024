@@ -1,0 +1,328 @@
+AddressInit:
+# base-address s0 = 0x7000
+# 0x0000 is the starting point of Stack
+li s0, 0x7000
+addi s1, s0, 0x0000     # LEDR[16:0] address: s1 = 0x7000    
+addi s2, s0, 0x0010     # LEDG[7:0] address: s2 = 0x7010
+addi s3, s0, 0x0020     # _HEX3_HEX2_HEX1_HEX0 address: s3 = 0x7020
+addi s4, s0, 0x0024     # _HEX7_HEX6_HEX5_HEX4 address: s4 = 0x7024
+addi s5, s0, 0x0030     # LCD address: s5 = 0x7030
+                        # LCD 
+addi s6, s0, 0x0400     
+addi s6, s6, 0x0400     # SW[16:0] address: s6 = 0x7800 (0 - 131071 decimal)
+addi s7, s6, 0x0010     # KEY[3:0] address: s7 = 0x7810, RESET - START - STOP
+
+# t2 = 0x100 is the start-address of LUT(0-9)
+Bin2SegLUT:
+   addi t2, x0, 0x100
+   addi t1, x0, 0x40
+   sw t1, 0(t2)
+   addi t2, x0, 0x104
+   addi t1, x0, 0x79
+   sw t1, 0(t2)
+   addi t2, x0, 0x108
+   addi t1, x0, 0x24
+   sw t1, 0(t2)
+   addi t2, x0, 0x10c
+   addi t1, x0, 0x30
+   sw t1, 0(t2)
+   addi t2, x0, 0x110
+   addi t1, x0, 0x19
+   sw t1, 0(t2)
+   addi t2, x0, 0x114
+   addi t1, x0, 0x12
+   sw t1, 0(t2)
+   addi t2, x0, 0x118
+   addi t1, x0, 0x02
+   sw t1, 0(t2)
+   addi t2, x0, 0x11c
+   addi t1, x0, 0x78
+   sw t1, 0(t2)
+   addi t2, x0, 0x120
+   addi t1, x0, 0x00
+   sw t1, 0(t2)
+   addi t2, x0, 0x124
+   addi t1, x0, 0x10
+   sw t1, 0(t2)
+
+# t2 = 0x200 is the start-address 16x2 datas for LCD
+INIT_DATA_LCD:
+   li t0, ' '  
+   sw t0, 0x200(x0)
+   li t0, 'H' 
+   sw t0, 0x204(x0)
+   li t0, 'e' 
+   sw t0, 0x208(x0)
+   li t0, 'l' 
+   sw t0, 0x20C(x0)
+   li t0, 'l' 
+   sw t0, 0x210(x0)
+   li t0, 'o' 
+   sw t0, 0x214(x0)
+   li t0, ' ' 
+   sw t0, 0x218(x0)
+   li t0, 'W' 
+   sw t0, 0x21C(x0)
+   li t0, 'o' 
+   sw t0, 0x220(x0)
+   li t0, 'r' 
+   sw t0, 0x224(x0)
+   li t0, 'l' 
+   sw t0, 0x228(x0)
+   li t0, 'd' 
+   sw t0, 0x22C(x0)
+   li t0, ' ' 
+   sw t0, 0x230(x0)
+   li t0, '!' 
+   sw t0, 0x234(x0)
+   li t0, '!' 
+   sw t0, 0x238(x0)
+   li t0, ' ' 
+   sw t0, 0x23C(x0)
+   
+   li t0, ' ' 
+   sw t0, 0x240(x0)
+   li t0, 'E' 
+   sw t0, 0x244(x0)
+   li t0, 'E' 
+   sw t0, 0x248(x0)
+   li t0, '3' 
+   sw t0, 0x24C(x0)
+   li t0, '0' 
+   sw t0, 0x250(x0)
+   li t0, '4' 
+   sw t0, 0x254(x0)
+   li t0, '3' 
+   sw t0, 0x258(x0)
+   li t0, ' ' 
+   sw t0, 0x25C(x0)
+   li t0, 'n' 
+   sw t0, 0x260(x0)
+   li t0, 'a' 
+   sw t0, 0x264(x0)
+   li t0, 'm' 
+   sw t0, 0x268(x0)
+   li t0, 'd' 
+   sw t0, 0x26C(x0)
+   li t0, ' ' 
+   sw t0, 0x270(x0)
+   li t0, ' ' 
+   sw t0, 0x274(x0)
+   li t0, ' ' 
+   sw t0, 0x278(x0)
+   li t0, ' ' 
+   sw t0, 0x27C(x0)  
+
+RESET_LCD:
+   jal ra, DELAY10MS
+   jal ra, DELAY10MS
+   li t0, 0x30
+   jal ra, CMDWRITE
+   jal ra, DELAY10MS
+   jal ra, DELAY10MS
+   jal ra, DELAY10MS
+   li t0, 0x30
+   jal ra, CMDWRITE
+   jal ra, DELAY10MS
+   li t0, 0x30
+   jal ra, CMDWRITE
+   jal ra, DELAY10MS
+
+INIT_LCD:
+   li t0, 0x38
+   jal ra, CMDWRITE
+   li t0, 0x01
+   jal ra, CMDWRITE
+   li t0, 0x0C
+   jal ra, CMDWRITE
+   li t0, 0x06
+   jal ra, CMDWRITE
+
+MAIN:
+   jal ra, DISPLAY_LCD
+   jal ra, MAIN
+
+#########################
+#     NAM DOAN DINH     #
+#########################
+
+# Destructed reg: t0, t1, t2
+# Input: t0
+# Output: t0 (remainder), t1 (quotient)
+DIV10:
+   li t1, 0
+   li t2, -10
+DIV10_LOOP:
+   addi t1, t1, 1
+   add  t0, t0, t2
+   bge  t0, x0, DIV10_LOOP
+   
+   addi t1, t1, -1
+   li t2, 10
+   add  t0, t0, t2
+   jalr x0, ra, 0
+
+
+# Destructed reg: no register were harmed
+# DELAY 1 centisecond = 10 milisecond
+# 20ns + 40ns + x*60ns + 20ns + 20ns = 10ms => x = 166665
+DELAY10MS:
+   sw t0, 0x1C(x0)         # 20ns
+   li t0, 200000             # 40ns
+DELAY10MS_LOOP:            # 60ns
+   addi t0, t0, -1               # 20ns
+   bne  t0, x0, DELAY10MS_LOOP   # 20ns
+
+   lw t0, 0x1C(x0)               # 20ns
+   jalr x0, ra, 0                # 20ns
+
+# Destructed reg: t0
+# Input: t0 (8-bit CMD) 0x00000_0_data
+# Output: t0 was write as CMD
+CMDWRITE:
+   sw t1, 0x00(x0)
+   sw t2, 0x04(x0)
+   sw t3, 0x08(x0)
+   sw t4, 0x0C(x0)
+   sw t5, 0x10(x0)
+   sw t6, 0x14(x0)
+   sw ra, 0x18(x0)
+
+   li t1, 0x00000400     # EN
+   li t2, 0x00000200     # RS
+   li t3, 0x00000100     # RW
+   li t4, 0xFFFFFBFF     # NOT_EN
+   li t5, 0xFFFFFDFF     # NOT_RS
+   li t6, 0xFFFFFEFF     # NOT_EN
+
+   or t0, t0, t1           # EN = 1
+   sw t0, 0(s5)
+   jal ra, DELAY10MS
+   and t0, t0, t4         # EN = 0
+   sw t0, 0(s5)
+   jal ra, DELAY10MS        
+
+   lw ra, 0x18(x0)
+   lw t6, 0x14(x0)
+   lw t5, 0x10(x0)
+   lw t4, 0x0C(x0)
+   lw t3, 0x08(x0)
+   lw t2, 0x04(x0)
+   lw t1, 0x00(x0)
+   
+   jalr x0, ra, 0
+
+DATAWRITE:
+   sw t1, 0x00(x0)
+   sw t2, 0x04(x0)
+   sw t3, 0x08(x0)
+   sw t4, 0x0C(x0)
+   sw t5, 0x10(x0)
+   sw t6, 0x14(x0)
+   sw ra, 0x18(x0)
+   
+   li t1, 0x00000400     # EN
+   li t2, 0x00000200     # RS
+   li t3, 0x00000100     # RW
+   li t4, 0xFFFFFBFF     # NOT_EN
+   li t5, 0xFFFFFDFF     # NOT_RS
+   li t6, 0xFFFFFEFF     # NOT_EN
+
+   or t0, t0, t1
+   or t0, t0, t2
+   sw t0, 0(s5)
+   jal ra, DELAY10MS
+   and t0, t0, t4
+   sw t0, 0(s5)
+   jal ra, DELAY10MS   
+
+   lw ra, 0x18(x0)
+   lw t6, 0x14(x0)
+   lw t5, 0x10(x0)
+   lw t4, 0x0C(x0)
+   lw t3, 0x08(x0)
+   lw t2, 0x04(x0)
+   lw t1, 0x00(x0)
+   
+   jalr x0, ra, 0
+
+DISPLAY_LCD:
+   sw t0, 0x38(x0)
+   sw ra, 0x3C(x0)
+
+   li t0, 0x80          # Resset DDRAM pointer to Line 1
+   jal ra, CMDWRITE
+
+   lw t0, 0x200(x0)
+   jal ra, DATAWRITE
+   lw t0, 0x204(x0)
+   jal ra, DATAWRITE
+   lw t0, 0x208(x0)
+   jal ra, DATAWRITE
+   lw t0, 0x20C(x0)
+   jal ra, DATAWRITE
+   lw t0, 0x210(x0)
+   jal ra, DATAWRITE
+   lw t0, 0x214(x0)
+   jal ra, DATAWRITE
+   lw t0, 0x218(x0)
+   jal ra, DATAWRITE
+   lw t0, 0x21C(x0)
+   jal ra, DATAWRITE
+   lw t0, 0x220(x0)
+   jal ra, DATAWRITE
+   lw t0, 0x224(x0)
+   jal ra, DATAWRITE
+   lw t0, 0x228(x0)
+   jal ra, DATAWRITE
+   lw t0, 0x22C(x0)
+   jal ra, DATAWRITE
+   lw t0, 0x230(x0)
+   jal ra, DATAWRITE
+   lw t0, 0x234(x0)
+   jal ra, DATAWRITE
+   lw t0, 0x238(x0)
+   jal ra, DATAWRITE
+   lw t0, 0x23C(x0)
+   jal ra, DATAWRITE
+
+   li t0, 0xC0          # Resset DDRAM pointer to Line 2
+   jal ra, CMDWRITE
+
+   lw t0, 0x240(x0)
+   jal ra, DATAWRITE
+   lw t0, 0x244(x0)
+   jal ra, DATAWRITE
+   lw t0, 0x248(x0)
+   jal ra, DATAWRITE
+   lw t0, 0x24C(x0)
+   jal ra, DATAWRITE
+   lw t0, 0x250(x0)
+   jal ra, DATAWRITE
+   lw t0, 0x254(x0)
+   jal ra, DATAWRITE
+   lw t0, 0x258(x0)
+   jal ra, DATAWRITE
+   lw t0, 0x25C(x0)
+   jal ra, DATAWRITE
+   lw t0, 0x260(x0)
+   jal ra, DATAWRITE
+   lw t0, 0x264(x0)
+   jal ra, DATAWRITE
+   lw t0, 0x268(x0)
+   jal ra, DATAWRITE
+   lw t0, 0x26C(x0)
+   jal ra, DATAWRITE
+   lw t0, 0x270(x0)
+   jal ra, DATAWRITE
+   lw t0, 0x274(x0)
+   jal ra, DATAWRITE
+   lw t0, 0x278(x0)
+   jal ra, DATAWRITE
+   lw t0, 0x27C(x0)
+   jal ra, DATAWRITE
+   
+   lw ra, 0x3C(x0)
+   lw t0, 0x38(x0)
+
+   jalr x0, ra, 0

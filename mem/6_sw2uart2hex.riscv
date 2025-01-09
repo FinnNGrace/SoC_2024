@@ -1,0 +1,109 @@
+#########################
+#     NAM DOAN DINH     #
+#########################
+
+# base-address s0 = 0x7000
+# 0x0000 - 0x07FFF  (DMEM)
+AddressInit:
+li s0, 0x7000
+addi s1, s0, 0x0000     # LEDR[16:0]               s1 = 0x7000    
+addi s2, s0, 0x0010     # LEDG[7:0]                s2 = 0x7010
+addi s3, s0, 0x0020     # _HEX3_HEX2_HEX1_HEX0     s3 = 0x7020
+addi s4, s0, 0x0024     # _HEX7_HEX6_HEX5_HEX4     s4 = 0x7024
+addi s5, s0, 0x0030     # LCD address              s5 = 0x7030
+addi s6, s0, 0x0400
+addi s6, s6, 0x0400     # SW[16:0]                 s6 = 0x7800 (0 - 131071 decimal)
+addi s7, s6, 0x0010     # KEY[3:0]                 s7 = 0x7810
+
+addi s8, s6, 0x0020     # PRDATA    s8 = 0x7820    In
+addi s9, s6, 0x0024     # PWRITE    s9 = 0x7824    Out
+addi s10, s6, 0x0028    # PWDATA    s10 = 0x7828   Out
+addi s11, s6, 0x002C    # PADDR     s11 = 0x782C   Out
+addi a2, s6, 0x0030     # PSLVERR   a2 = 0x7830    In
+addi a3, s6, 0x0034     # PREADY    a3 = 0x7834    In
+addi a4, s6, 0x0038     # PENABLE   a4 = 0x7838    Out
+addi a5, s6, 0x003C     # PSEL      a5 = 0x783C    Out
+
+
+MAIN:
+   jal ra, APB_UART_CONFIGURE
+LOOP:
+   lw t2, 0(s6)   # get SW
+   li t1, 6       # addr of TBR
+   jal ra, APB_WRITE
+   li t1, 7       # addr of RBR
+   jal ra, APB_READ  # t2 get RBR
+   sw t2, 0(s1)   # display t2 to LEDR
+   jal ra, LOOP
+
+# Destructed reg: t1, t2
+# Input: t1 (address), t2 (data)
+# Output: MEM[t1] = t2
+APB_WRITE:
+   sw t1, 0(s11)  # PADDR = addr
+   sw t2, 0(s10)  # PWDATA = data
+   li t1, 1
+   sw t1, 0(s9)   # PWRITE = 1
+   sw x0, 0(a4)   # PENABLE = 0
+   sw t1, 0(a4)   # PENABLE = 1
+WAIT_PREADY_WRITE:
+   lw t2, 0(a3)   # get PREADY
+   beq t2, x0, WAIT_PREADY_WRITE
+   
+   sw x0, 0(a4)   # PENABLE = 0
+   jalr x0, ra, 0
+
+# Destructed reg: t1, t2
+# Input: t1 (address)
+# Output: t2 = MEM[t1]
+APB_READ:
+   sw t1, 0(s11)  # PADDR = addr
+   li t1, 1
+   sw x0, 0(s9)   # PWRITE = 0
+   sw x0, 0(a4)   # PENABLE = 0
+   sw t1, 0(a4)   # PENABLE = 1
+WAIT_PREADY_READ:
+   lw t2, 0(a3)   # get PREADY
+   beq t2, x0, WAIT_PREADY_READ
+   
+   lw t2, 0(s8)   # t2 get PRDATA
+   sw x0, 0(a4)   # PENABLE = 0
+   jalr x0, ra, 0
+
+# Destructed reg: t0, t1, t2
+APB_UART_CONFIGURE:
+   sw ra, 0x10(x0)
+
+   li t1, 1
+   sw t1, 0(a5)   # PSEL = 0000_0001
+   li t1, 4
+   li t2, 15      # IER = 0000_1111
+   jal ra, APB_WRITE
+
+   li t1, 3
+   li t2, 0       # LCR = 0000_0000
+   jal ra, APB_WRITE
+   li t1, 3
+   li t2, 3       # LCR = 0000_0011
+   jal ra, APB_WRITE
+   li t1, 0
+   li t2, 0       # MDR = 0000_0000
+   jal ra, APB_WRITE
+   li t1, 2
+   li t2, 5       # DLH = 0000_0101
+   jal ra, APB_WRITE
+   li t1, 1
+   li t2, 22       # DLL = 0001_0110
+   jal ra, APB_WRITE
+   li t1, 3
+   li t2, 35       # LCR = 0010_0011
+   jal ra, APB_WRITE
+
+   lw ra, 0x10(x0)
+   jalr x0, ra, 0
+
+
+
+
+
+
